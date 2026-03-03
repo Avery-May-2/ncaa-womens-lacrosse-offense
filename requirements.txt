@@ -3,3 +3,4 @@ requests
 lxml
 plotly
 matplotlib
+streamlit
