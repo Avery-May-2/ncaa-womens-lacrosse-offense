@@ -2,8 +2,6 @@ streamlit
 pandas
 plotly
 openpyxl
-requests
-beautifulsoup4
 lxml
-altair==4.2.2
-
+html5lib
+beautifulsoup4
