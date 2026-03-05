@@ -1,0 +1,34 @@
+name: Update NCAA Data
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas lxml html5lib beautifulsoup4
+
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Commit updated CSV
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/ncaa_womens_lacrosse_team_stats_2026.csv
+          git commit -m "Automated data update" || echo "No changes"
+          git push
