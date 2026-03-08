@@ -6,6 +6,17 @@ st.set_page_config(layout="wide")
 
 st.title("NCAA Women's Lacrosse Offensive Efficiency Dashboard")
 
+st.markdown(
+"""
+This dashboard analyzes **NCAA Women's Lacrosse offensive performance** using efficiency metrics.
+
+Key metrics include:
+- **Offensive Efficiency** — Goals per estimated possession
+- **Shot Efficiency** — Goals per shot on goal
+- **Pace** — Estimated possessions per game
+"""
+)
+
 # -------------------------------------------------
 # LOAD DATA
 # -------------------------------------------------
@@ -44,13 +55,50 @@ df = df.replace([float("inf"), -float("inf")], None)
 
 st.sidebar.header("Filters")
 
-if "conference" in df.columns:
-    conferences = ["All"] + sorted(df["conference"].dropna().unique())
-    selected_conf = st.sidebar.selectbox("Conference", conferences)
+filtered_df = df.copy()
+
+# Conference filter
+if "conference" in filtered_df.columns:
+
+    conferences = ["All"] + sorted(filtered_df["conference"].dropna().unique())
+
+    selected_conf = st.sidebar.selectbox(
+        "Conference",
+        conferences
+    )
 
     if selected_conf != "All":
-        df = df[df["conference"] == selected_conf]
+        filtered_df = filtered_df[filtered_df["conference"] == selected_conf]
 
+
+# Team search
+team_search = st.sidebar.text_input("Search Team")
+
+if team_search:
+    filtered_df = filtered_df[
+        filtered_df["team"].str.contains(team_search, case=False, na=False)
+    ]
+
+
+# Team filter
+teams = sorted(filtered_df["team"].dropna().unique())
+
+selected_teams = st.sidebar.multiselect(
+    "Select Teams",
+    teams,
+    default=teams
+)
+
+filtered_df = filtered_df[filtered_df["team"].isin(selected_teams)]
+
+df = filtered_df
+
+
+# Top 25 offenses toggle
+top25 = st.sidebar.checkbox("Show Top 25 Offenses Only")
+
+if top25:
+    df = df.sort_values("offensive_efficiency", ascending=False).head(25)
 # -------------------------------------------------
 # KPI CARDS
 # -------------------------------------------------
@@ -72,6 +120,21 @@ col3.metric(
     round(df["pace"].max(skipna=True), 1),
 )
 
+st.subheader("Top Offensive Teams")
+
+top_teams = df.sort_values("offensive_efficiency", ascending=False).head(10)
+
+st.dataframe(
+    top_teams[[
+        "team",
+        "goals",
+        "shots_on_goal",
+        "offensive_efficiency",
+        "shot_efficiency",
+        "pace"
+    ]],
+    use_container_width=True
+)
 # -------------------------------------------------
 # BAR CHART — Efficiency Rankings
 # -------------------------------------------------
@@ -106,31 +169,34 @@ fig2 = px.scatter(
     y="offensive_efficiency",
     hover_name="team",
     size=df["goals"].fillna(0),
-    title="Pace vs Offensive Efficiency",
+    color="offensive_efficiency",
+    color_continuous_scale="Reds",
+    title="Pace vs Offensive Efficiency"
 )
 
-fig.update_layout(template="plotly_dark")
+fig2.update_layout(
+    template="plotly_dark",
+    height=600
+)
 
 st.plotly_chart(fig2, use_container_width=True)
 
-def plot_shot_efficiency(df):
+df_shot = df.sort_values("shot_efficiency", ascending=False)
 
-    df_sorted = df.sort_values("Shot_Efficiency", ascending=False)
+fig3 = px.bar(
+    df_shot,
+    x="shot_efficiency",
+    y="team",
+    orientation="h",
+    title="Shot Efficiency Ranking",
+    color="shot_efficiency",
+    color_continuous_scale="Blues"
+)
 
-    fig3 = px.bar(
-        df_sorted,
-        x="Shot_Efficiency",
-        y="team",
-        orientation="h",
-        title="Shot Efficiency Ranking",
-        color="Shot_Efficiency",
-        color_continuous_scale="Reds"
-    )
-
-    fig.update_layout(
-        template="plotly_dark",
-        yaxis=dict(autorange="reversed"),
-        height=900
-    )
+fig3.update_layout(
+    template="plotly_white",
+    yaxis=dict(autorange="reversed"),
+    height=800
+)
 
 st.plotly_chart(fig3, use_container_width=True)
