@@ -33,7 +33,18 @@ jobs:
   	run: |
     	  git config user.name "github-actions"
     	  git config user.email "github-actions@github.com"
-    	  git pull origin main --rebase
+
     	  git add data/ncaa_womens_lacrosse_team_stats_2026.csv
-    	  git commit -m "Auto update NCAA stats" || echo "No changes"
-    	  git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$		{{ github.repository }} HEAD:main
+
+    	  if git diff --cached --quiet; then
+      	    echo "No changes to commit"
+      	    exit 0
+    	  fi
+
+    	  git commit -m "Auto update NCAA stats"
+
+    	  # Sync with latest remote changes
+    	  git fetch origin
+    	  git rebase origin/main
+
+    	  git push origin HEAD:main
