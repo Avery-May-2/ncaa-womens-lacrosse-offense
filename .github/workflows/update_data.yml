@@ -1,5 +1,9 @@
 name: Update NCAA Data
 
+concurrency:
+  group: update-ncaa-data
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
