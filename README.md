@@ -26,6 +26,9 @@ This project tracks offensive efficiency across NCAA Division 1 women's lacrosse
 2. Run the notebook:
    notebooks/dashboard.ipynb
 
+**OR**
+Access the web app directly with this link: [Lacrosse Efficiency Dashboard](https://avery-may-2-ncaa-womens-lacrosse-offense-app-arfc0g.streamlit.app/)
+
 ## Future Improvements
 
 - Strength-of-schedule adjustment
